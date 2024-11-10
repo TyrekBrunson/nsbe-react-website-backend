@@ -1,8 +1,12 @@
 const express = require("express");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 const PORT = 3000;
+
+// Enable CORS for all requests
+app.use(cors());
 
 // Event data array
 const events = [
@@ -47,6 +51,9 @@ const events = [
 // Set JSON spaces for pretty-printing
 app.set("json spaces", 2);
 
+// Serve static files from the "public" directory
+app.use(express.static("public"));
+
 // Serve the index.html file
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -57,7 +64,7 @@ app.get("/api/events", (req, res) => {
     res.json(events); // Respond with JSON data
 });
 
-// Start server
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });

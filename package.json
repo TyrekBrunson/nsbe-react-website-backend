@@ -7,6 +7,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "cors": "^2.8.5",
     "gh-pages": "^6.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -42,7 +43,6 @@
   },
   "description": "The National Society of Black Engineers (NSBE) empowers Black engineers to excel academically, succeed professionally, and positively impact communities. This React-based project supports NSBE's mission through resources, events, and member engagement.",
   "main": "index.js",
-  "devDependencies": {},
   "keywords": [],
   "author": "",
   "license": "ISC"

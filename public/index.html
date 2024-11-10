@@ -4,18 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NSBE Event Data</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css"> <!-- Note the leading "/" -->
 </head>
 <body>
   <h1>NSBE Event Data</h1>
-  <p><strong>Get All Events:</strong></p>
-  <p><a href="/api/events" id="all-events-link">All Events</a></p>
-  
-  <div id="events-container">
-    <!-- Each event will be displayed as a card here -->
-  </div>
-
-  <!-- Link to your script file -->
+  <p><strong>Available API Requests:</strong></p>
+  <ul>
+    <li><a href="/api/events" id="all-events-link">All Events</a></li>
+  </ul>
+  <div id="events-container"></div>
   <script src="script.js"></script>
 </body>
 </html>
