@@ -9,7 +9,7 @@ function TimelinePage() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    const jsonUrl = 'https://raw.githubusercontent.com/TyrekBrunson/TyrekBrunson.github.io/main/projects/part7/timeline.json';
+    const jsonUrl = 'https://nsbe-react-website-backend.onrender.com/api/events';
 
     fetch(jsonUrl)
       .then(response => response.json())
