@@ -49,30 +49,16 @@
   },
   {
     "_id": 4,
-    "event": "NESBE PARTY",
-    "img_name": "nesbepartytime",
+    "event": "NSBE TEST EVENT",
+    "img_name": "default.jpg",
     "date": "2022",
-    "description": "NSBE has an event going on come join us",
+    "description": "A test event to see if thing work",
     "details": [
-      "bring food and cake for the party!"
+      "event"
     ],
-    "location": "934 Engineering place",
-    "attendees": 38,
-    "theme": "green blue and orange cloths",
-    "organizer": "Pete David's"
-  },
-  {
-    "_id": 5,
-    "event": "NSBE PARTY",
-    "img_name": "eraraerar",
-    "date": "1911",
-    "description": "daffdfafdfafaffafafafafaf",
-    "details": [
-      "daffafadfadaff"
-    ],
-    "location": "dfafaff",
-    "attendees": 12,
-    "theme": "afdfaf",
-    "organizer": "dfadfffd"
+    "location": "forret drive",
+    "attendees": 23,
+    "theme": "black and gold outfits",
+    "organizer": "david roberts"
   }
 ]
