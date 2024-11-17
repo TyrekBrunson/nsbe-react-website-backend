@@ -46,19 +46,5 @@
     "attendees": 400,
     "theme": "Pioneers Gathering",
     "organizer": "National Society of Black Engineers"
-  },
-  {
-    "_id": 4,
-    "event": "NSBE TEST EVENT",
-    "img_name": "default.jpg",
-    "date": "2022",
-    "description": "A test event to see if thing work",
-    "details": [
-      "event"
-    ],
-    "location": "forret drive",
-    "attendees": 23,
-    "theme": "black and gold outfits",
-    "organizer": "david roberts"
   }
 ]

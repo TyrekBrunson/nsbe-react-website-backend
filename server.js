@@ -123,18 +123,23 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
 
 // Route for deleting an event by ID
 app.delete("/api/events/:id", (req, res) => {
-  const eventId = parseInt(req.params.id, 10);
-  const events = readEvents();
-
-  const updatedEvents = events.filter((event) => event._id !== eventId);
-
-  if (updatedEvents.length === events.length) {
-    return res.status(404).json({ success: false, message: "Event not found" });
-  }
-
-  writeEvents(updatedEvents);
-  res.status(200).json({ success: true, message: "Event deleted successfully!" });
-});
+    const eventId = parseInt(req.params.id, 10); // Ensure ID is parsed as an integer
+    const events = readEvents();
+  
+    // Filter out the event to delete
+    const updatedEvents = events.filter((event) => event._id !== eventId);
+  
+    // If no event was deleted
+    if (updatedEvents.length === events.length) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+  
+    // Write the updated events back to the JSON file
+    writeEvents(updatedEvents);
+  
+    // Respond with a success message
+    res.status(200).json({ success: true, message: "Event deleted successfully!" });
+  });
 
 // Serve static files (React app)
 app.use(express.static("public"));
