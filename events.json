@@ -1,0 +1,78 @@
+[
+  {
+    "_id": 1,
+    "event": "NSBE Innovators Summit 2023",
+    "img_name": "nesbemeeting2.jpg",
+    "date": "2023",
+    "description": "The NSBE Innovators Summit 2023 brought together engineers, innovators, and industry leaders to explore the latest trends in technology and engineering.",
+    "details": [
+      "Keynote Speakers",
+      "Workshops",
+      "Networking"
+    ],
+    "location": "Atlanta, GA",
+    "attendees": 500,
+    "theme": "Innovation in Technology",
+    "organizer": "National Society of Black Engineers"
+  },
+  {
+    "_id": 2,
+    "event": "NSBE Visionaries Conference 2022",
+    "img_name": "nesbeemeeting3.jpg",
+    "date": "2022",
+    "description": "The NSBE Visionaries Conference 2022 focused on future innovations and advancements in STEM.",
+    "details": [
+      "Interactive Sessions",
+      "Diversity Discussions",
+      "New Technologies"
+    ],
+    "location": "San Francisco, CA",
+    "attendees": 600,
+    "theme": "Future of STEM",
+    "organizer": "National Society of Black Engineers"
+  },
+  {
+    "_id": 3,
+    "event": "NSBE Pioneers Gathering 2021",
+    "img_name": "nesbemeeting4.jpg",
+    "date": "2021",
+    "description": "The NSBE Pioneers Gathering 2021 celebrated the achievements of Black engineers and explored groundbreaking projects.",
+    "details": [
+      "Design Workshops",
+      "24 New Technology concepts",
+      "Proof of Concepts"
+    ],
+    "location": "South Carolina, SA",
+    "attendees": 400,
+    "theme": "Pioneers Gathering",
+    "organizer": "National Society of Black Engineers"
+  },
+  {
+    "_id": 4,
+    "event": "NESBE PARTY",
+    "img_name": "nesbepartytime",
+    "date": "2022",
+    "description": "NSBE has an event going on come join us",
+    "details": [
+      "bring food and cake for the party!"
+    ],
+    "location": "934 Engineering place",
+    "attendees": 38,
+    "theme": "green blue and orange cloths",
+    "organizer": "Pete David's"
+  },
+  {
+    "_id": 5,
+    "event": "NSBE PARTY",
+    "img_name": "eraraerar",
+    "date": "1911",
+    "description": "daffdfafdfafaffafafafafaf",
+    "details": [
+      "daffafadfadaff"
+    ],
+    "location": "dfafaff",
+    "attendees": 12,
+    "theme": "afdfaf",
+    "organizer": "dfadfffd"
+  }
+]

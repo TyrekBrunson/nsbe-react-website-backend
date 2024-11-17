@@ -1,70 +1,102 @@
 const express = require("express");
-const path = require("path");
+const fs = require("fs");
+const Joi = require("joi");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = 3000;
 
-// Enable CORS for all requests
+// Enable CORS and JSON parsing
 app.use(cors());
+app.use(express.json());
 
-// Event data array
-const events = [
-    {
-        "_id": 1,
-        "event": "NSBE Innovators Summit 2023",
-        "img_name": "nesbemeeting2.jpg",
-        "date": "2023",
-        "description": "The NSBE Innovators Summit 2023 brought together engineers, innovators, and industry leaders to explore the latest trends in technology and engineering.",
-        "details": ["Keynote Speakers", "Workshops", "Networking"],
-        "location": "Atlanta, GA",
-        "attendees": 500,
-        "theme": "Innovation in Technology",
-        "organizer": "National Society of Black Engineers"
-    },
-    {
-        "_id": 2,
-        "event": "NSBE Visionaries Conference 2022",
-        "img_name": "nesbeemeeting3.jpg",
-        "date": "2022",
-        "description": "The NSBE Visionaries Conference 2022 focused on future innovations and advancements in STEM.",
-        "details": ["Interactive Sessions", "Diversity Discussions", "New Technologies"],
-        "location": "San Francisco, CA",
-        "attendees": 600,
-        "theme": "Future of STEM",
-        "organizer": "National Society of Black Engineers"
-    },
-    {
-        "_id": 3,
-        "event": "NSBE Pioneers Gathering 2021",
-        "img_name": "nesbemeeting4.jpg",
-        "date": "2021",
-        "description": "The NSBE Pioneers Gathering 2021 celebrated the achievements of Black engineers and explored groundbreaking projects.",
-        "details": ["Design Workshops", "24 New Technology concepts", "Proof of Concepts"],
-        "location": "South Carolina, SA",
-        "attendees": 400,
-        "theme": "Pioneers Gathering",
-        "organizer": "National Society of Black Engineers"
-    }
-];
+// Path to the events JSON file
+const eventsFilePath = "./events.json";
 
-// Set JSON spaces for pretty-printing
-app.set("json spaces", 2);
+// Function to read events from the JSON file
+const readEvents = () => {
+  try {
+    const data = fs.readFileSync(eventsFilePath, "utf-8");
+    return JSON.parse(data); // Parse the JSON file content
+  } catch (error) {
+    console.error("Error reading events.json:", error);
+    return []; // Return an empty array if the file is missing or corrupted
+  }
+};
 
-// Serve static files from the "public" directory
-app.use(express.static("public"));
+// Function to write data to the JSON file
+const writeEvents = (data) => {
+  try {
+    fs.writeFileSync(eventsFilePath, JSON.stringify(data, null, 2), "utf-8");
+  } catch (error) {
+    console.error("Error writing to events.json:", error);
+  }
+};
 
-// Serve the index.html file
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+// Joi schema for validation
+const eventSchema = Joi.object({
+  event: Joi.string().min(3).required(),
+  img_name: Joi.string().min(5).required(),
+  date: Joi.string().regex(/^\d{4}$/).required(), // Year format: YYYY
+  description: Joi.string().min(10).required(),
+  details: Joi.array().items(Joi.string().min(3)).required(),
+  location: Joi.string().min(3).required(),
+  attendees: Joi.number().integer().min(1).required(),
+  theme: Joi.string().min(3).required(),
+  organizer: Joi.string().min(3).required(),
 });
 
-// API route to get all events
+// Route to get all events
 app.get("/api/events", (req, res) => {
-    res.json(events); // Respond with JSON data
+    try {
+      const events = readEvents(); // Read events from the JSON file
+      console.log("Sending events:", events); // Debug log
+      res.json(events); // Send JSON response
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ message: "Error fetching events" }); // Send error response
+    }
+  });
+
+// Route to add a new event
+app.post("/api/events", (req, res) => {
+    const { error } = eventSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        details: error.details.map((err) => err.message),
+      });
+    }
+
+  // Read current events
+  const events = readEvents();
+
+  // Add the new event with a unique ID
+  const newEvent = { _id: events.length + 1, ...req.body };
+  events.push(newEvent);
+
+  // Write updated events back to the JSON file
+  writeEvents(events);
+
+  // Send a proper JSON response
+  res.status(201).json({
+    success: true,
+    message: "Event added successfully!",
+    data: newEvent,
+  });
+});
+
+// Serve static files (React app)
+app.use(express.static("public"));
+
+// Catch-all route to serve React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
