@@ -50,12 +50,12 @@ const writeEvents = (data) => {
 // Joi schema for validation
 const eventSchema = Joi.object({
   event: Joi.string().min(3).required(),
-  img_name: Joi.string().optional(),
-  date: Joi.string().regex(/^\d{4}$/).required(),
+  img_name: Joi.string().optional(), // Optional, but must be a string if provided
+  date: Joi.string().regex(/^\d{4}$/).required(), // Year format (YYYY)
   description: Joi.string().min(10).required(),
-  details: Joi.string().required(), // Details as a comma-separated string
+  details: Joi.string().allow("").required(), // Details as a comma-separated string
   location: Joi.string().min(3).required(),
-  attendees: Joi.number().integer().min(0).required(),
+  attendees: Joi.number().integer().min(0).required(), // Minimum attendees 0
   theme: Joi.string().min(3).required(),
   organizer: Joi.string().min(3).required(),
 });
@@ -79,9 +79,12 @@ app.post("/api/events", upload.single("img_name"), (req, res) => {
     const eventData = {
       ...req.body,
       img_name,
-      details: req.body.details.split(",").map((d) => d.trim()), // Convert details to an array
-      attendees: parseInt(req.body.attendees, 10), // Ensure attendees is an integer
+      details: req.body.details ? req.body.details.split(",").map((d) => d.trim()) : [], // Convert to array
+      attendees: parseInt(req.body.attendees, 10) || 0, // Ensure attendees is an integer
     };
+
+    // Debug log for event data
+    console.log("Event data received:", eventData);
 
     const { error } = eventSchema.validate(eventData);
     if (error) {
