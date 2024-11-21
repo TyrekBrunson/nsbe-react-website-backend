@@ -1,4 +1,3 @@
-
 const express = require("express");
 const fs = require("fs");
 const Joi = require("joi");
@@ -20,10 +19,10 @@ const eventsFilePath = "./events.json";
 const readEvents = () => {
   try {
     const data = fs.readFileSync(eventsFilePath, "utf-8");
-    return JSON.parse(data); // Parse the JSON file content
+    return JSON.parse(data);
   } catch (error) {
     console.error("Error reading events.json:", error);
-    return []; // Return an empty array if the file is missing or corrupted
+    return [];
   }
 };
 
@@ -38,36 +37,41 @@ const writeEvents = (data) => {
 
 // Joi schema for validation
 const eventSchema = Joi.object({
-    event: Joi.string().min(3).required(),
-    img_name: Joi.string().optional(), // Allow img_name to be optional
-    date: Joi.string().regex(/^\d{4}$/).required(), // Year format (YYYY)
-    description: Joi.string().min(10).required(),
-    details: Joi.array().items(Joi.string().min(3)).required(), // Array of strings
-    location: Joi.string().min(3).required(),
-    attendees: Joi.number().integer().min(0).required(), // Minimum attendees 0
-    theme: Joi.string().min(3).required(),
-    organizer: Joi.string().min(3).required(),
-  });
+  event: Joi.string().min(3).required(),
+  img_name: Joi.string().optional(),
+  date: Joi.string().pattern(/^\d{4}$/).required(), // Year format (YYYY)
+  description: Joi.string().min(10).required(),
+  details: Joi.array().items(Joi.string().min(3)).required(), // Array of strings
+  location: Joi.string().min(3).required(),
+  attendees: Joi.number().integer().min(0).required(),
+  theme: Joi.string().min(3).required(),
+  organizer: Joi.string().min(3).required(),
+});
+
+// Middleware for logging and error handling
+app.use((req, res, next) => {
+  console.log(`${req.method} request to ${req.url}`);
+  next();
+});
 
 // Route to get all events
 app.get("/api/events", (req, res) => {
   try {
-    const events = readEvents(); // Read events from the JSON file
-    console.log("Sending events:", events); // Debug log
-    res.json(events); // Send JSON response
+    const events = readEvents();
+    res.json(events);
   } catch (error) {
     console.error("Error fetching events:", error);
-    res.status(500).json({ message: "Error fetching events" }); // Send error response
+    res.status(500).json({ message: "Error fetching events" });
   }
 });
 
 // Route to add a new event
 app.post("/api/events", (req, res) => {
-  console.log("Incoming data:", req.body); // Log incoming data for debugging
+  console.log("Incoming data:", req.body);
 
   const { error } = eventSchema.validate(req.body);
   if (error) {
-    console.error("Validation error:", error.details); // Log validation errors
+    console.error("Validation error:", error.details);
     return res.status(400).json({
       success: false,
       message: "Validation error",
@@ -81,10 +85,8 @@ app.post("/api/events", (req, res) => {
   const newEvent = { _id: events.length + 1, ...req.body };
   events.push(newEvent);
 
-  // Write updated events back to the JSON file
   writeEvents(events);
 
-  // Send a proper JSON response
   res.status(201).json({
     success: true,
     message: "Event added successfully!",
@@ -94,53 +96,49 @@ app.post("/api/events", (req, res) => {
 
 // Configure multer for storing uploaded images
 const upload = multer({
-    dest: "public/images", // Directory to store uploaded images
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-    fileFilter: (req, file, cb) => {
-      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (allowedTypes.includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        cb(new Error("Only images are allowed!"));
-      }
-    },
-  });
+  dest: "public/images",
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images are allowed!"));
+    }
+  },
+});
 
 // Route for uploading an image
 app.post("/api/upload", upload.single("image"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
-    }
-  
-    res.status(200).json({
-      success: true,
-      message: "Image uploaded successfully!",
-      imagePath: `/images/${req.file.filename}`, // Path to the uploaded image
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "No file uploaded",
     });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Image uploaded successfully!",
+    imagePath: `/images/${req.file.filename}`,
   });
+});
 
 // Route for deleting an event by ID
 app.delete("/api/events/:id", (req, res) => {
-    const eventId = parseInt(req.params.id, 10); // Ensure ID is parsed as an integer
-    const events = readEvents();
-  
-    // Filter out the event to delete
-    const updatedEvents = events.filter((event) => event._id !== eventId);
-  
-    // If no event was deleted
-    if (updatedEvents.length === events.length) {
-      return res.status(404).json({ success: false, message: "Event not found" });
-    }
-  
-    // Write the updated events back to the JSON file
-    writeEvents(updatedEvents);
-  
-    // Respond with a success message
-    res.status(200).json({ success: true, message: "Event deleted successfully!" });
-  });
+  const eventId = parseInt(req.params.id, 10);
+  const events = readEvents();
+
+  const updatedEvents = events.filter((event) => event._id !== eventId);
+
+  if (updatedEvents.length === events.length) {
+    return res.status(404).json({ success: false, message: "Event not found" });
+  }
+
+  writeEvents(updatedEvents);
+
+  res.status(200).json({ success: true, message: "Event deleted successfully!" });
+});
 
 // Serve static files (React app)
 app.use(express.static("public"));
@@ -148,6 +146,12 @@ app.use(express.static("public"));
 // Catch-all route to serve React app
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, message: "An internal server error occurred." });
 });
 
 // Start the server
