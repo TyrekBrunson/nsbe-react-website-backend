@@ -38,16 +38,16 @@ const writeEvents = (data) => {
 
 // Joi schema for validation
 const eventSchema = Joi.object({
-    event: Joi.string().min(3).required(),
-    img_name: Joi.string().optional(), // Allow img_name to be optional
-    date: Joi.string().regex(/^\d{4}$/).required(), // Year format (YYYY)
-    description: Joi.string().min(10).required(),
-    details: Joi.array().items(Joi.string().min(3)).required(), // Array of strings
-    location: Joi.string().min(3).required(),
-    attendees: Joi.number().integer().min(0).required(), // Minimum attendees 0
-    theme: Joi.string().min(3).required(),
-    organizer: Joi.string().min(3).required(),
-  });
+  event: Joi.string().min(3).required(),
+  img_name: Joi.string().optional(), // Allow img_name to be optional
+  date: Joi.string().regex(/^\d{4}$/).required(), // Year format (YYYY)
+  description: Joi.string().min(10).required(),
+  details: Joi.array().items(Joi.string().min(3)).required(), // Array of strings
+  location: Joi.string().min(3).required(),
+  attendees: Joi.number().integer().min(0).required(), // Minimum attendees 0
+  theme: Joi.string().min(3).required(),
+  organizer: Joi.string().min(3).required(),
+});
 
 // Route to get all events
 app.get("/api/events", (req, res) => {
