@@ -1,143 +1,150 @@
 const express = require("express");
-const fs = require("fs");
-const Joi = require("joi");
 const cors = require("cors");
-const path = require("path");
-const multer = require("multer");
-
 const app = express();
-const PORT = 3000;
+const Joi = require("joi");
+const multer = require("multer");
+const path = require("path");
 
-// Enable CORS and JSON parsing
-app.use(cors());
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads")); // Serve uploaded images
 app.use(express.json());
+app.use(cors());
 
-// Set up Multer for image uploads
+// Multer configuration for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./public/images/"); // Destination folder for uploaded images
+    cb(null, "./public/images/"); // Directory to store uploaded images
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename with extension
+    cb(null, Date.now() + path.extname(file.originalname)); // Add timestamp to avoid file name collisions
   },
 });
 
-const upload = multer({ storage });
-
-// Path to the events JSON file
-const eventsFilePath = "./events.json";
-
-// Function to read events from the JSON file
-const readEvents = () => {
-  try {
-    const data = fs.readFileSync(eventsFilePath, "utf-8");
-    return JSON.parse(data); // Parse the JSON file content
-  } catch (error) {
-    console.error("Error reading events.json:", error);
-    return []; // Return an empty array if the file is missing or corrupted
-  }
-};
-
-// Function to write data to the JSON file
-const writeEvents = (data) => {
-  try {
-    fs.writeFileSync(eventsFilePath, JSON.stringify(data, null, 2), "utf-8");
-  } catch (error) {
-    console.error("Error writing to events.json:", error);
-  }
-};
-
-// Joi schema for validation
-const eventSchema = Joi.object({
-  event: Joi.string().min(3).required(),
-  img_name: Joi.string().optional(), // Optional, but must be a string if provided
-  date: Joi.string().regex(/^\d{4}$/).required(), // Year format (YYYY)
-  description: Joi.string().min(10).required(),
-  details: Joi.string().allow("").required(), // Details as a comma-separated string
-  location: Joi.string().min(3).required(),
-  attendees: Joi.number().integer().min(0).required(), // Minimum attendees 0
-  theme: Joi.string().min(3).required(),
-  organizer: Joi.string().min(3).required(),
-});
-
-// Route to get all events
-app.get("/api/events", (req, res) => {
-  try {
-    const events = readEvents();
-    res.json(events); // Send JSON response
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    res.status(500).json({ message: "Error fetching events" });
-  }
-});
-
-// Route to add a new event
-app.post("/api/events", upload.single("img_name"), (req, res) => {
-  try {
-    const img_name = req.file ? `/images/${req.file.filename}` : req.body.img_name || "";
-
-    const eventData = {
-      ...req.body,
-      img_name,
-      details: req.body.details ? req.body.details.split(",").map((d) => d.trim()) : [], // Convert to array
-      attendees: parseInt(req.body.attendees, 10) || 0, // Ensure attendees is an integer
-    };
-
-    // Debug log for event data
-    console.log("Event data received:", eventData);
-
-    const { error } = eventSchema.validate(eventData);
-    if (error) {
-      console.error("Validation error:", error.details);
-      return res.status(400).json({
-        success: false,
-        message: "Validation error",
-        details: error.details.map((err) => err.message),
-      });
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images are allowed!"));
     }
-
-    const events = readEvents();
-    const newEvent = { _id: events.length + 1, ...eventData };
-    events.push(newEvent);
-
-    writeEvents(events);
-
-    res.status(201).json({
-      success: true,
-      message: "Event added successfully!",
-      data: newEvent,
-    });
-  } catch (error) {
-    console.error("Error processing request:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
+  },
+  limits: { fileSize: 2 * 1024 * 1024 }, // Limit file size to 2MB
 });
 
-// Route for deleting an event by ID
-app.delete("/api/events/:id", (req, res) => {
-  const eventId = parseInt(req.params.id, 10);
-  const events = readEvents();
+// Dummy data for houses
+let houses = [
+  {
+    _id: 1,
+    name: "Farmhouse",
+    size: 2000,
+    bedrooms: 3,
+    bathrooms: 2.5,
+    main_image: "images/farm.webp",
+  },
+  {
+    _id: 2,
+    name: "Mountain House",
+    size: 1700,
+    bedrooms: 3,
+    bathrooms: 2,
+    main_image: "images/mountain-house.webp",
+  },
+  {
+    _id: 3,
+    name: "Lake House",
+    size: 3000,
+    bedrooms: 4,
+    bathrooms: 3,
+    main_image: "images/lake-house.webp",
+  },
+];
 
-  const updatedEvents = events.filter((event) => event._id !== eventId);
-
-  if (updatedEvents.length === events.length) {
-    return res.status(404).json({ success: false, message: "Event not found" });
-  }
-
-  writeEvents(updatedEvents);
-
-  res.status(200).json({ success: true, message: "Event deleted successfully!" });
+// GET all houses
+app.get("/api/houses", (req, res) => {
+  res.status(200).json(houses);
 });
 
-// Serve static files (React app)
-app.use(express.static("public"));
+// POST a new house with image upload
+app.post("/api/houses", upload.single("img"), (req, res) => {
+  const { error } = validateHouse(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
 
-// Catch-all route to serve React app
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  const house = {
+    _id: houses.length + 1,
+    name: req.body.name,
+    size: parseInt(req.body.size, 10),
+    bedrooms: parseInt(req.body.bedrooms, 10),
+    bathrooms: parseFloat(req.body.bathrooms),
+    main_image: req.file ? "images/" + req.file.filename : null,
+  };
+
+  houses.push(house);
+  res.status(201).json({ success: true, message: "House added successfully!", data: house });
+});
+
+// PUT (update) a house with optional image upload
+app.put("/api/houses/:id", upload.single("img"), (req, res) => {
+  const house = houses.find((h) => h._id === parseInt(req.params.id, 10));
+  if (!house) {
+    return res.status(404).json({ success: false, message: "House not found" });
+  }
+
+  const { error } = validateHouse(req.body);
+  if (error) {
+    return res.status(400).json({ success: false, message: error.details[0].message });
+  }
+
+  house.name = req.body.name;
+  house.size = parseInt(req.body.size, 10);
+  house.bedrooms = parseInt(req.body.bedrooms, 10);
+  house.bathrooms = parseFloat(req.body.bathrooms);
+  if (req.file) {
+    house.main_image = "images/" + req.file.filename;
+  }
+
+  res.status(200).json({ success: true, message: "House updated successfully!", data: house });
+});
+
+// DELETE a house
+app.delete("/api/houses/:id", (req, res) => {
+  const houseIndex = houses.findIndex((h) => h._id === parseInt(req.params.id, 10));
+  if (houseIndex === -1) {
+    return res.status(404).json({ success: false, message: "House not found" });
+  }
+
+  const deletedHouse = houses.splice(houseIndex, 1);
+  res.status(200).json({ success: true, message: "House deleted successfully!", data: deletedHouse });
+});
+
+// Validation schema for house data
+const validateHouse = (house) => {
+  const schema = Joi.object({
+    name: Joi.string().min(3).required(),
+    size: Joi.number().required(),
+    bedrooms: Joi.number().required(),
+    bathrooms: Joi.number().required(),
+  });
+
+  return schema.validate(house);
+};
+
+// Error handling middleware for file uploads
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+  if (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+  next();
 });
 
 // Start the server
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
